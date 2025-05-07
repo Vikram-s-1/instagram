@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: instagram-clone
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: instagram-clone
+  template:
+    metadata:
+      labels:
+        app: instagram-clone
+    spec:
+      containers:
+        - name: instagram-clone
+          image: trialfj6own.jfrog.io/virtual-docker-repo/instagram-clone
+          ports:
+            - containerPort: 80
+
