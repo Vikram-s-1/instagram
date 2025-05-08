@@ -2,14 +2,14 @@ pipeline {
   agent any
 
   environment {
-    REGISTRY = "<jfrog-url>/react-docker-virtual"
-    IMAGE = "instagram-app:${BUILD_NUMBER}"
+    REGISTRY = "<trialfj6own.jfrog.io/docker-local/instagram-clone:lates"
+    IMAGE = "instagram-clone:${BUILD_NUMBER}"
   }
 
   stages {
     stage('Clone Repo') {
       steps {
-        git 'https://github.com/your-username/instagram.git'
+        git 'https://github.com/Vikram-s-1/instagram.git'
       }
     }
 
