@@ -2,8 +2,8 @@ pipeline {
   agent any
 
   environment {
-    REGISTRY = "<trialfj6own.jfrog.io/docker-local/instagram-clone:lates"
-    IMAGE = "instagram-clone:${BUILD_NUMBER}"
+    REGISTRY = "trialfj6own.jfrog.io/docker-local"
+    IMAGE = "instagram-app:${BUILD_NUMBER}"
   }
 
   stages {
@@ -19,11 +19,11 @@ pipeline {
       }
     }
 
-    stage('Push Image to JFrog') {
+    stage('Push to JFrog Artifactory') {
       steps {
         withCredentials([usernamePassword(credentialsId: 'jfrog-creds', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
           sh '''
-            docker login -u $USERNAME -p $PASSWORD <jfrog-url>
+            docker login -u $USERNAME -p $PASSWORD trialfj6own.jfrog.io
             docker push $REGISTRY/$IMAGE
           '''
         }
@@ -32,7 +32,9 @@ pipeline {
 
     stage('Deploy to Kubernetes') {
       steps {
-        sh 'kubectl set image deployment/instagram-app instagram-app=$REGISTRY/$IMAGE --record'
+        withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+          sh 'kubectl set image deployment/instagram-app instagram-app=trialfj6own.jfrog.io/virtual-docker-repo/instagram-app:${BUILD_NUMBER} --record'
+        }
       }
     }
   }
