@@ -1,12 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: instagram-clone-service
+  name: instagram-service
+  labels:
+    app: instagram-clone
 spec:
-  type: LoadBalancer
+  type: LoadBalancer  # Use ClusterIP for internal apps
   selector:
     app: instagram-clone
   ports:
-    - port: 80
-      targetPort: 80
+    - protocol: TCP
+      port: 80           # Exposed port (browser uses this)
+      targetPort: 3000   # The port your container app listens on
 

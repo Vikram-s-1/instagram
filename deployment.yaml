@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: instagram-clone
 spec:
-  replicas: 2
+  replicas: 10
   selector:
     matchLabels:
       app: instagram-clone
@@ -14,7 +14,4 @@ spec:
     spec:
       containers:
         - name: instagram-clone
-          image: trialfj6own.jfrog.io/virtual-docker-repo/instagram-clone
-          ports:
-            - containerPort: 80
-
+          image: 043309347290.dkr.ecr.us-east-1.amazonaws.com/vikram
