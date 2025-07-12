@@ -20,12 +20,12 @@ phases:
   post_build:
     commands:
       - echo Pushing image to ECR...
-      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - docker push 043309347290.dkr.ecr.us-east-1.amazonaws.com/vikram:latest
       - echo Deploying to EKS...
-      - aws eks update-kubeconfig --region $AWS_REGION --name $cluster1
-      - sed -i "s|IMAGE_PLACEHOLDER|$REPOSITORY_URI:$IMAGE_TAG|g" k8s/deployment.yaml
-      - kubectl apply -f k8s/deployment.yaml
-      - kubectl apply -f k8s/service.yaml
+      - aws eks update-kubeconfig --region us-east-1 --name cluster1
+      - sed -i "s|IMAGE_PLACEHOLDER|$REPOSITORY_URI:$IMAGE_TAG|g" deployment.yaml
+      - kubectl apply -f deployment.yaml
+      - kubectl apply -f service.yaml
 
 artifacts:
   files:
