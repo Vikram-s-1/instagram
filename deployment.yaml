@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: instagram-clone
 spec:
-  replicas: 10
+  replicas: 3
   selector:
     matchLabels:
       app: instagram-clone
@@ -14,4 +14,7 @@ spec:
     spec:
       containers:
         - name: instagram-clone
-          image: 043309347290.dkr.ecr.us-east-1.amazonaws.com/vikram:latest
+          image: IMAGE_PLACEHOLDER  # This will be replaced
+          ports:
+            - containerPort: 3000  # Change this to your actual app port
+
