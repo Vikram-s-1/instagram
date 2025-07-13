@@ -13,16 +13,19 @@ phases:
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
+      - echo "Image tag: $IMAGE_TAG"
+
   build:
-  commands:
+    commands:
       - echo Building Docker image...
       - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
+
   post_build:
     commands:
       - echo Pushing image to ECR...
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo Deploying to EKS...
-      - aws eks update-kubeconfig --region us-east-1 --name cluster1
+      - aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME
       - sed -i "s|IMAGE_PLACEHOLDER|$REPOSITORY_URI:$IMAGE_TAG|g" deployment.yaml
       - kubectl apply -f deployment.yaml
       - kubectl apply -f service.yaml
