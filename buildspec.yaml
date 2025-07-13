@@ -20,7 +20,7 @@ phases:
   post_build:
     commands:
       - echo Pushing image to ECR...
-      -docker push  043309347290.dkr.ecr.us-east-1.amazonaws.com/vikram:latest
+      - docker push  043309347290.dkr.ecr.us-east-1.amazonaws.com/vikram:latest
       - echo Deploying to EKS...
       - aws eks update-kubeconfig --region us-east-1 --name cluster1
       - sed -i "s|IMAGE_PLACEHOLDER|$REPOSITORY_URI:$IMAGE_TAG|g" deployment.yaml
