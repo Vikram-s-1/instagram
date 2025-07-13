@@ -19,14 +19,19 @@ phases:
     commands:
       - echo Building Docker image...
       - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
+    post_build:
+      commands:
+    - echo "Pushing Docker image to ECR..."
+    - docker push $REPOSITORY_URI:$IMAGE_TAG
+    - echo "Updating kubeconfig for EKS..."
+    - aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME
+    - echo "Replacing image in deployment.yaml..."
+    - sed -i "s|IMAGE_PLACEHOLDER|$REPOSITORY_URI:$IMAGE_TAG|g" deployment.yaml
+    - echo "Applying deployment.yaml..."
+    - cat deployment.yaml
+    - kubectl apply -f deployment.yaml || (echo "❌ kubectl apply failed with exit code $?"; exit 1)
 
-  post_build:
-    commands:
-      - echo Pushing image to ECR...
-      - docker push $REPOSITORY_URI:$IMAGE_TAG
-      - echo Deploying to EKS...
-      - aws eks update-kubeconfig --region us-east-1 --name cluster1
-      - sed -i "s|IMAGE_PLACEHOLDER|$REPOSITORY_URI:$IMAGE_TAG|g" deployment.yaml
+
       - kubectl apply -f deployment.yaml
       - kubectl apply -f service.yaml
 
