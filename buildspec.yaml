@@ -27,11 +27,4 @@ phases:
       - echo Deploying to EKS...
       - aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME
       - sed -i "s|IMAGE_PLACEHOLDER|$REPOSITORY_URI:$IMAGE_TAG|g" deployment.yaml
-      - kubectl apply -f deployment.yaml
-      - kubectl apply -f service.yaml
-
-# You can remove this if not generating imagedefinitions.json
-artifacts:
-  files:
-    - imagedefinitions.json
 
