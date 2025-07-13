@@ -14,4 +14,4 @@ spec:
     spec:
       containers:
         - name: instagram-clone
-          image: 043309347290.dkr.ecr.us-east-1.amazonaws.com/vikram
+          image: 043309347290.dkr.ecr.us-east-1.amazonaws.com/vikram:latest
