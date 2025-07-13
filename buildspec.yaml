@@ -20,7 +20,7 @@ phases:
       - echo Building Docker image...
       - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
     post_build:
-      commands:
+       commands:
     - echo "Pushing Docker image to ECR..."
     - docker push $REPOSITORY_URI:$IMAGE_TAG
     - echo "Updating kubeconfig for EKS..."
