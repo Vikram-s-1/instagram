@@ -30,6 +30,7 @@ phases:
       - kubectl apply -f deployment.yaml
       - kubectl apply -f service.yaml
 
+# You can remove this if not generating imagedefinitions.json
 artifacts:
   files:
     - imagedefinitions.json
