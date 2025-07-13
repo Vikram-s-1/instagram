@@ -1,8 +1,22 @@
-FROM nginx:alpine
+# Use an official Node.js base image
+FROM node:18-alpine
 
-COPY build/ /usr/share/nginx/html
+# Set working directory
+WORKDIR /app
 
-EXPOSE 80
+# Copy package files and install dependencies
+COPY package*.json ./
+RUN npm install
 
-CMD ["nginx", "-g", "daemon off;"]
+# Copy the rest of the source code
+COPY . .
+
+# Build the app (for frontend or server-side build step)
+RUN npm run build
+
+# Expose port (optional: only needed if you're running a web server)
+EXPOSE 3000
+
+# Command to run the app
+CMD ["npm", "start"]
 
