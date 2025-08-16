@@ -86,9 +86,6 @@ function Signup() {
       }
 
       console.log('Profile created successfully');
-      }
-
-      console.log('Profile created successfully');
 
       // Always redirect to login after signup since email verification is required
       navigate("/login");
