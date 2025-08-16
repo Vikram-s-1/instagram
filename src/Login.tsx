@@ -17,15 +17,35 @@ function Login() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Login error:', error);
+        throw error;
+      }
+
+      if (!data.session) {
+        throw new Error('No session established after login');
+      }
+
+      // Fetch user profile to ensure it exists
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select()
+        .eq('id', data.user.id)
+        .single();
+
+      if (profileError || !profile) {
+        console.error('Profile fetch error:', profileError);
+        throw new Error('Failed to fetch user profile');
+      }
 
       navigate("/");
     } catch (err: any) {
+      console.error('Login process error:', err);
       setError(err.message);
       toast.error(err.message);
     } finally {

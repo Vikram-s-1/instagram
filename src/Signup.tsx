@@ -30,6 +30,18 @@ function Signup() {
     setLoading(true);
 
     try {
+      // Check if username is already taken
+      const { data: existingUser } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('username', username)
+        .single();
+
+      if (existingUser) {
+        setError('Username is already taken');
+        return;
+      }
+
       // Sign up with Supabase Auth
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email,
@@ -42,23 +54,39 @@ function Signup() {
         }
       });
 
-      if (signUpError) throw signUpError;
+      if (signUpError) {
+        console.error('Signup error:', signUpError);
+        throw signUpError;
+      }
 
-      if (authData.user) {
-        // Create profile in the profiles table
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: authData.user.id,
-            username,
-            full_name: fullName,
-            email,
-            avatar_url: "",
-            bio: "",
-            website: ""
-          });
+      if (!authData.user) {
+        throw new Error('Failed to create user account');
+      }
 
-        if (profileError) throw profileError;
+      // Create profile in the profiles table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: authData.user.id,
+          username,
+          full_name: fullName,
+          email,
+          avatar_url: "",
+          bio: "",
+          website: ""
+        });
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        // If profile creation fails, we should clean up the auth user
+        await supabase.auth.signOut();
+        throw new Error('Failed to create user profile. Please try again.');
+      }
+
+      // Check if email confirmation is required
+      if (!authData.session) {
+        navigate("/login");
+        return;
       }
 
       navigate("/"); // Redirect to home on success
