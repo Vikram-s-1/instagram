@@ -31,11 +31,16 @@ function Signup() {
 
     try {
       // Check if username is already taken
-      const { data: existingUser } = await supabase
+      const { data: existingUser, error: userCheckError } = await supabase
         .from('profiles')
         .select('username')
         .eq('username', username)
         .single();
+
+      if (userCheckError && userCheckError.code !== 'PGRST116') {
+        console.error('Error checking username:', userCheckError);
+        throw new Error('Error checking username availability');
+      }
 
       if (existingUser) {
         setError('Username is already taken');
@@ -63,36 +68,46 @@ function Signup() {
         throw new Error('Failed to create user account');
       }
 
-      // Add a small delay to ensure the user is created in auth.users
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('User created successfully:', authData.user.id);
 
-      console.log('Attempting to create profile for user:', authData.user.id);
+      // Get the session to ensure we're authenticated
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
-      // Create profile with retry logic
-      let profileError;
-      for (let i = 0; i < 3; i++) {
-        const { error } = await supabase
+      if (sessionError || !session) {
+        console.error('Session error:', sessionError);
+        throw new Error('Failed to get session after signup');
+      }
+
+      console.log('Session obtained successfully');
+
+      // Create the profile
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: authData.user.id,
+          username,
+          full_name: fullName,
+          email,
+          avatar_url: "",
+          bio: "",
+          website: ""
+        });
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        
+        // Check if profile already exists
+        const { data: existingProfile } = await supabase
           .from('profiles')
-          .insert({
-            id: authData.user.id,
-            username,
-            full_name: fullName,
-            email,
-            avatar_url: "",
-            bio: "",
-            website: ""
-          });
-          
-        if (!error) {
-          console.log('Profile created successfully on attempt', i + 1);
-          break;
+          .select('*')
+          .eq('id', authData.user.id)
+          .single();
+
+        if (existingProfile) {
+          console.log('Profile already exists:', existingProfile);
+        } else {
+          throw new Error(`Failed to create profile: ${profileError.message}`);
         }
-        
-        profileError = error;
-        console.log('Profile creation attempt', i + 1, 'failed:', error);
-        
-        // Wait a bit before retrying
-        await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
       if (profileError) {
