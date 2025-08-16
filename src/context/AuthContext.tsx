@@ -29,9 +29,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (profile) {
             setUser(session.user);
           } else {
-            // If no profile exists, sign out
-            await supabase.auth.signOut();
-            setUser(null);
+            // Profile missing: don't force sign-out. Allow the authenticated
+            // session and let the app prompt the user to complete their profile.
+            console.warn('No profile found for user', session.user.id, '- allowing login and prompting for profile creation');
+            setUser(session.user);
           }
         } else {
           setUser(null);
@@ -49,19 +50,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for changes on auth state (login, sign out, etc.)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
       if (session) {
-        // Verify profile exists on auth state change
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select()
-          .eq('id', session.user.id)
-          .single();
-        
-        if (profile) {
-          setUser(session.user);
-        } else {
-          await supabase.auth.signOut();
-          setUser(null);
+        // Try to fetch profile for additional app state, but don't sign out
+        // the user if it's missing (RLS/trigger timing can cause gaps).
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select()
+            .eq('id', session.user.id)
+            .single();
+
+          if (!profile) {
+            console.warn('Auth state change: profile not found for', session.user.id);
+          }
+        } catch (err) {
+          console.warn('Error fetching profile on auth change (ignored):', err);
         }
+
+        setUser(session.user);
       } else {
         setUser(null);
       }
