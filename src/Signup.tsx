@@ -65,15 +65,8 @@ function Signup() {
 
       console.log('Attempting to create profile for user:', authData.user.id);
       
-      // Double check the user ID
-      console.log('Auth user ID:', authData.user.id);
-      
-      // Verify auth status
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('Current session:', session);
-
-      // Try to create the profile
-      const { data: profileData, error: profileError } = await supabase
+      // Create profile with simple insert
+      const { error: profileError } = await supabase
         .from('profiles')
         .insert({
           id: authData.user.id,
@@ -83,39 +76,16 @@ function Signup() {
           avatar_url: "",
           bio: "",
           website: ""
-        })
-        .select();  // Add this to see what's returned
-
-      // Log everything for debugging
-      console.log('Profile creation attempt:', {
-        profileData,
-        profileError,
-        userId: authData.user.id,
-        username,
-        fullName,
-        email
-      });
+        });
 
       if (profileError) {
-        console.error('Profile creation error details:', {
-          code: profileError.code,
-          message: profileError.message,
-          details: profileError.details,
-          hint: profileError.hint
-        });
-        
-        // Check if the profile already exists
-        const { data: existingProfile, error: checkError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', authData.user.id)
-          .single();
-          
-        console.log('Existing profile check:', { existingProfile, checkError });
-
+        console.error('Profile creation error:', profileError);
         // If profile creation fails, clean up
         await supabase.auth.signOut();
-        throw new Error(`Failed to create user profile: ${profileError.message}`);
+        throw new Error('Failed to create user profile. Please try again.');
+      }
+
+      console.log('Profile created successfully');
       }
 
       console.log('Profile created successfully');
