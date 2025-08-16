@@ -22,16 +22,18 @@ function Login() {
         password,
       });
 
+      console.log('Auth signIn response:', { data, error });
+
       if (error) {
         console.error('Login error:', error);
         // Check if it's an email verification error
-        if (error.message.includes('Email not confirmed')) {
+        if (error.message && error.message.includes('Email not confirmed')) {
           throw new Error('Please verify your email address before logging in. Check your inbox for the verification link.');
         }
         throw error;
       }
 
-      if (!data.session) {
+      if (!data || !data.session) {
         throw new Error('No session established after login');
       }
 
@@ -43,8 +45,11 @@ function Login() {
         .single();
 
       if (profileError || !profile) {
-        console.error('Profile fetch error:', profileError);
-        throw new Error('Failed to fetch user profile');
+        // Don't block login if profile can't be fetched (RLS or trigger timing issues).
+        console.warn('Profile fetch failed, allowing login to continue:', profileError);
+        // Optionally you can redirect to a profile-setup page instead of home.
+        navigate("/");
+        return;
       }
 
       navigate("/");
