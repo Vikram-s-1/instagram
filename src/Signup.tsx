@@ -70,15 +70,10 @@ function Signup() {
 
       console.log('User created successfully:', authData.user.id);
 
-      // Get the session to ensure we're authenticated
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !session) {
-        console.error('Session error:', sessionError);
-        throw new Error('Failed to get session after signup');
-      }
-
-      console.log('Session obtained successfully');
+      // Do NOT require an active session here: when email verification is enabled
+      // Supabase may not return a session immediately. Proceed to create the
+      // profile using the returned user id and rely on RLS policies to allow
+      // insert during signup (ensure your policies allow this).
 
       // Create the profile
       const { error: profileError } = await supabase
@@ -95,29 +90,28 @@ function Signup() {
 
       if (profileError) {
         console.error('Profile creation error:', profileError);
-        
-        // Check if profile already exists
-        const { data: existingProfile } = await supabase
+
+        // If profile already exists, continue silently (idempotent)
+        const { data: existingProfile, error: existingProfileErr } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', authData.user.id)
           .single();
 
-        if (existingProfile) {
-          console.log('Profile already exists:', existingProfile);
-        } else {
-          throw new Error(`Failed to create profile: ${profileError.message}`);
+        if (existingProfileErr) {
+          console.error('Error checking existing profile:', existingProfileErr);
         }
-      }
 
-      if (profileError) {
-        console.error('Profile creation error:', profileError);
-        // If profile creation fails, clean up
-        await supabase.auth.signOut();
-        throw new Error('Failed to create user profile. Please try again.');
+        if (existingProfile) {
+          console.log('Profile already exists, proceeding');
+        } else {
+          // If profile creation truly failed, sign out to avoid leaving a half-created auth state
+          try { await supabase.auth.signOut(); } catch (e) { /* ignore */ }
+          throw new Error('Failed to create user profile. Please try again.');
+        }
+      } else {
+        console.log('Profile created successfully');
       }
-
-      console.log('Profile created successfully');
 
       // Always redirect to login after signup since email verification is required
       navigate("/login");
