@@ -24,6 +24,10 @@ function Login() {
 
       if (error) {
         console.error('Login error:', error);
+        // Check if it's an email verification error
+        if (error.message.includes('Email not confirmed')) {
+          throw new Error('Please verify your email address before logging in. Check your inbox for the verification link.');
+        }
         throw error;
       }
 
