@@ -1,0 +1,10 @@
+{
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "framework": "create-react-app",
+  "outputDirectory": "build",
+  "env": {
+    "REACT_APP_SUPABASE_URL": "https://cxkzsflpkbxkpxkkrbxm.supabase.co",
+    "REACT_APP_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN4a3pzZmxwa2J4a3B4a2tyYnhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzMzUyOTksImV4cCI6MjA3MDkxMTI5OX0.cruCjcsvmsYNEliXpo-ekKMWp8fuFs6if0mP3_v_e0c"
+  }
+}
