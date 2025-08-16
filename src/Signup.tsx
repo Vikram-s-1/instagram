@@ -76,10 +76,9 @@ function Signup() {
 
   // Redirect to login and ask the user to verify their email.
 
-      // Always redirect to login after signup since email verification is required
-      navigate("/login");
-      // Show success message
-      setError("Registration successful! Please check your email for verification link.");
+  // Show success message and delay redirect so user can see it
+  setError("Registration successful! Please check your email for verification link.");
+  setTimeout(() => navigate("/login"), 3000);
     } catch (error: any) {
       setError(error.message || "Failed to create account");
     } finally {
