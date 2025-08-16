@@ -68,50 +68,13 @@ function Signup() {
         throw new Error('Failed to create user account');
       }
 
-      console.log('User created successfully:', authData.user.id);
+  console.log('User created successfully:', authData.user.id);
 
-      // Do NOT require an active session here: when email verification is enabled
-      // Supabase may not return a session immediately. Proceed to create the
-      // profile using the returned user id and rely on RLS policies to allow
-      // insert during signup (ensure your policies allow this).
+  // Profile creation is handled server-side by a DB trigger (see
+  // `supabase/create_profile_trigger.sql`). This avoids race conditions
+  // with auth.users and foreign-key constraints.
 
-      // Create the profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: authData.user.id,
-          username,
-          full_name: fullName,
-          email,
-          avatar_url: "",
-          bio: "",
-          website: ""
-        });
-
-      if (profileError) {
-        console.error('Profile creation error:', profileError);
-
-        // If profile already exists, continue silently (idempotent)
-        const { data: existingProfile, error: existingProfileErr } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', authData.user.id)
-          .single();
-
-        if (existingProfileErr) {
-          console.error('Error checking existing profile:', existingProfileErr);
-        }
-
-        if (existingProfile) {
-          console.log('Profile already exists, proceeding');
-        } else {
-          // If profile creation truly failed, sign out to avoid leaving a half-created auth state
-          try { await supabase.auth.signOut(); } catch (e) { /* ignore */ }
-          throw new Error('Failed to create user profile. Please try again.');
-        }
-      } else {
-        console.log('Profile created successfully');
-      }
+  // Redirect to login and ask the user to verify their email.
 
       // Always redirect to login after signup since email verification is required
       navigate("/login");
