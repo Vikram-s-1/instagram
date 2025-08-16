@@ -65,8 +65,8 @@ function Signup() {
 
       console.log('Attempting to create profile for user:', authData.user.id);
       
-      // Create profile in the profiles table
-      const { data: profileData, error: profileError } = await supabase
+      // Try to create the profile
+      const { error: profileError } = await supabase
         .from('profiles')
         .insert({
           id: authData.user.id,
@@ -76,30 +76,16 @@ function Signup() {
           avatar_url: "",
           bio: "",
           website: ""
-        })
-        .select()
-        .single();
+        });
 
       if (profileError) {
         console.error('Profile creation error:', profileError);
-        console.error('Profile creation error details:', {
-          code: profileError.code,
-          details: profileError.details,
-          hint: profileError.hint,
-          message: profileError.message
-        });
-        // If profile creation fails, we should clean up the auth user
+        // If profile creation fails, clean up
         await supabase.auth.signOut();
-        throw new Error(`Failed to create user profile: ${profileError.message}`);
+        throw new Error('Failed to create user profile. Please try again.');
       }
 
-      if (!profileData) {
-        console.error('Profile was not created but no error was returned');
-        await supabase.auth.signOut();
-        throw new Error('Failed to create user profile: No profile data returned');
-      }
-
-      console.log('Profile created successfully:', profileData);
+      console.log('Profile created successfully');
 
       // Check if email confirmation is required
       if (!authData.session) {
